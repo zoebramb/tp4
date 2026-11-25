@@ -20,6 +20,8 @@ export type ServiceResult<T = void> =
   | { ok: false; error: string };
 
 export class RoomService {
+//Guarda en la RAM del proceso de node
+
   // Mapa de conexión WebSocket -> nombre del participante
   private participants = new Map<WebSocket, string>();
 

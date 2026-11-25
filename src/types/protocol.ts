@@ -2,6 +2,40 @@ import { ProductDTO } from "./ProductDTO.js";
 import { ProposalErrorItem } from "./ProposalErrorItem.js";
 
 
+// MENSAJES: CLIENTE -> SERVIDOR (WebSocket)
+
+export interface JoinMessage {
+  type: 'JOIN';
+  name: string;
+}
+
+export interface ProposeMessage {
+  type: 'PROPOSE';
+  productIds: number[];
+}
+
+export interface VoteMessage {
+  type: 'VOTE';
+  productId: number;
+}
+
+export interface UnvoteMessage {
+  type: 'UNVOTE';
+  productId: number;
+}
+
+export interface RemoveMessage {
+  type: 'REMOVE';
+  productId: number;
+}
+
+export type ClientMessage =
+  | JoinMessage
+  | ProposeMessage
+  | VoteMessage
+  | UnvoteMessage
+  | RemoveMessage;
+
 // MENSAJES: SERVIDOR -> CLIENTE (WebSocket)
 
 /** Se envía únicamente al participante que acaba de entrar con éxito */
