@@ -47,7 +47,7 @@ const httpServer = createServer(async (req, res) => {
     const filePath = path.resolve(PUBLIC_DIR, relativeFile);
 
     // Prevenir acceso fuera de /public
-    if (!filePath.startsWith(PUBLIC_DIR)) {
+    if (filePath !== PUBLIC_DIR && !filePath.startsWith(PUBLIC_DIR + path.sep)) {
       res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Acceso denegado');
       return;

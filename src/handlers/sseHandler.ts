@@ -21,6 +21,10 @@ export class SseManager {
     req.on('close', () => {
       this.clients.delete(res);
     });
+
+    res.on('error', () => {
+      this.clients.delete(res);
+    });
   }
 
   public broadcast(state: ScreenStateEvent): void {
@@ -35,6 +39,10 @@ export class SseManager {
 
   private sendToClient(res: ServerResponse, data: ScreenStateEvent): void {
     // Formato estándar de SSE: event + data en JSON + doble salto de línea
-    res.write(`event: state\ndata: ${JSON.stringify(data)}\n\n`);
+    try {
+      res.write(`event: state\ndata: ${JSON.stringify(data)}\n\n`);
+    } catch {
+      this.clients.delete(res);
+    }
   }
 }

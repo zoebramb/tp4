@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Regalo grupal · Participante</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-brand">
+        <h1>Regalo grupal</h1>
+        <span id="connection-status" class="badge badge-neutral">Conectando...</span>
+      </div>
+      <div class="topbar-actions">
+        <span id="user-pill" class="user-pill hidden"></span>
+        <a href="/screen" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+          Abrir Pantalla (SSE)
+        </a>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Vista 1: Ingreso con nombre -->
+      <section id="join-view" class="card join-card">
+        <h2>Entrar a la lista compartida</h2>
+        <p class="muted">
+          Elegí un nombre para proponer productos del catálogo y votar tus favoritos en tiempo real.
+        </p>
+
+        <form id="join-form" class="inline-form" novalidate>
+          <input
+            id="name-input"
+            type="text"
+            placeholder="Tu nombre (2 a 20 caracteres)"
+            autocomplete="off"
+          />
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+
+        <div id="join-error" class="alert alert-error hidden" role="alert"></div>
+      </section>
+
+      <!-- Vista 2: Sala principal del participante -->
+      <section id="room-view" class="room-layout hidden">
+        <div id="global-error" class="alert alert-error global-error hidden" role="alert">
+          <span id="global-error-text"></span>
+          <button id="dismiss-error-btn" type="button" class="btn-link" aria-label="Cerrar error">
+            Cerrar
+          </button>
+        </div>
+
+        <aside class="sidebar">
+          <!-- Participantes conectados -->
+          <section class="card">
+            <div class="section-header">
+              <h2>Participantes</h2>
+              <span id="participants-count" class="badge badge-info">0</span>
+            </div>
+            <ul id="participants-list" class="participants-list"></ul>
+          </section>
+
+          <!-- Proponer productos -->
+          <section class="card">
+            <h2>Proponer productos</h2>
+            <p class="muted small">
+              Ingresá uno o varios IDs de DummyJSON separados por coma o espacio (hasta 10 por vez).
+            </p>
+
+            <form id="propose-form" class="stack-form" novalidate>
+              <input
+                id="propose-input"
+                type="text"
+                placeholder="Ej: 1, 5, 12"
+                autocomplete="off"
+              />
+              <button type="submit" class="btn btn-primary">Proponer</button>
+            </form>
+
+            <div id="propose-loading" class="alert alert-info hidden" aria-live="polite">
+              Consultando catálogo... podés seguir votando mientras esperás.
+            </div>
+
+            <div id="propose-result" class="propose-result hidden" aria-live="polite"></div>
+          </section>
+        </aside>
+
+        <!-- Lista compartida y ranking -->
+        <section class="card main-panel">
+          <div class="section-header">
+            <h2>Ranking de productos</h2>
+            <span id="products-count" class="badge badge-neutral">0 productos</span>
+          </div>
+
+          <p id="empty-list" class="empty-state">
+            Todavía no hay productos propuestos. ¡Proponé el primero usando un ID del catálogo!
+          </p>
+
+          <ul id="products-list" class="products-list"></ul>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

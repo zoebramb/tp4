@@ -37,124 +37,132 @@ export function setupWebSocketHandler(
   };
 
   wss.on('connection', (ws: WebSocket) => {
+    ws.on('error', () => {
+      // Evitar que un error de socket no manejado cierre el servidor
+    });
+
     ws.on('message', async (rawData) => {
-      // Parsear JSON de forma segura
-      let parsed: unknown;
       try {
-        parsed = JSON.parse(rawData.toString());
-      } catch {
-        send(ws, { type: 'ERROR', message: 'El mensaje debe ser un JSON válido.' });
-        return;
-      }
-
-      // Validar estructura base del contrato
-      const validation = validateClientMessage(parsed);
-      if (!validation.ok) {
-        send(ws, { type: 'ERROR', message: validation.error });
-        return;
-      }
-
-      const msg = validation.message;
-
-      // Procesar acción según el tipo
-      if (msg.type === 'JOIN') {
-        const result = roomService.join(ws, msg.name);
-        if (!result.ok) {
-          send(ws, { type: 'ERROR', message: result.error });
+        // Parsear JSON de forma segura
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(rawData.toString());
+        } catch {
+          send(ws, { type: 'ERROR', message: 'El mensaje debe ser un JSON válido.' });
           return;
         }
 
-        // Al nuevo participante le mandamos el estado completo
-        send(ws, {
-          type: 'STATE_SYNC',
-          yourName: result.data,
-          products: roomService.getRankedProducts(),
-          participants: roomService.getParticipantsList(),
-        });
+        // Validar estructura base del contrato
+        const validation = validateClientMessage(parsed);
+        if (!validation.ok) {
+          send(ws, { type: 'ERROR', message: validation.error });
+          return;
+        }
 
-        // A todos (incluido él y la pantalla) les avisamos la lista de conectados
-        broadcastWs({
-          type: 'PARTICIPANTS_UPDATED',
-          participants: roomService.getParticipantsList(),
-        });
-        notifyScreens();
-        return;
-      }
+        const msg = validation.message;
 
-      // Para cualquier otra acción, el cliente debe haberse identificado primero con JOIN
-      const participantName = roomService.getParticipantName(ws);
-      if (!participantName) {
-        send(ws, { type: 'ERROR', message: 'Debés ingresar un nombre (JOIN) antes de realizar acciones.' });
-        return;
-      }
-
-      switch (msg.type) {
-        case 'PROPOSE': {
-          const result = await roomService.proposeProducts(participantName, msg.productIds);
+        // Procesar acción según el tipo
+        if (msg.type === 'JOIN') {
+          const result = roomService.join(ws, msg.name);
           if (!result.ok) {
             send(ws, { type: 'ERROR', message: result.error });
             return;
           }
 
-          // Solo quien propuso recibe el detalle de agregados y errores individuales
+          // Al nuevo participante le mandamos el estado completo
           send(ws, {
-            type: 'PROPOSE_RESULT',
-            addedIds: result.data.addedIds,
-            errors: result.data.errors,
+            type: 'STATE_SYNC',
+            yourName: result.data,
+            products: roomService.getRankedProducts(),
+            participants: roomService.getParticipantsList(),
           });
 
-          // Si se agregó al menos un producto, actualizamos a todos y a la pantalla
-          if (result.data.listChanged) {
+          // A todos (incluido él y la pantalla) les avisamos la lista de conectados
+          broadcastWs({
+            type: 'PARTICIPANTS_UPDATED',
+            participants: roomService.getParticipantsList(),
+          });
+          notifyScreens();
+          return;
+        }
+
+        // Para cualquier otra acción, el cliente debe haberse identificado primero con JOIN
+        const participantName = roomService.getParticipantName(ws);
+        if (!participantName) {
+          send(ws, { type: 'ERROR', message: 'Debés ingresar un nombre (JOIN) antes de realizar acciones.' });
+          return;
+        }
+
+        switch (msg.type) {
+          case 'PROPOSE': {
+            const result = await roomService.proposeProducts(participantName, msg.productIds);
+            if (!result.ok) {
+              send(ws, { type: 'ERROR', message: result.error });
+              return;
+            }
+
+            // Solo quien propuso recibe el detalle de agregados y errores individuales
+            send(ws, {
+              type: 'PROPOSE_RESULT',
+              addedIds: result.data.addedIds,
+              errors: result.data.errors,
+            });
+
+            // Si se agregó al menos un producto, actualizamos a todos y a la pantalla
+            if (result.data.listChanged) {
+              broadcastWs({
+                type: 'LIST_UPDATED',
+                products: roomService.getRankedProducts(),
+              });
+              notifyScreens();
+            }
+            break;
+          }
+
+          case 'VOTE': {
+            const result = roomService.vote(participantName, msg.productId);
+            if (!result.ok) {
+              send(ws, { type: 'ERROR', message: result.error });
+              return;
+            }
             broadcastWs({
               type: 'LIST_UPDATED',
               products: roomService.getRankedProducts(),
             });
             notifyScreens();
+            break;
           }
-          break;
-        }
 
-        case 'VOTE': {
-          const result = roomService.vote(participantName, msg.productId);
-          if (!result.ok) {
-            send(ws, { type: 'ERROR', message: result.error });
-            return;
+          case 'UNVOTE': {
+            const result = roomService.unvote(participantName, msg.productId);
+            if (!result.ok) {
+              send(ws, { type: 'ERROR', message: result.error });
+              return;
+            }
+            broadcastWs({
+              type: 'LIST_UPDATED',
+              products: roomService.getRankedProducts(),
+            });
+            notifyScreens();
+            break;
           }
-          broadcastWs({
-            type: 'LIST_UPDATED',
-            products: roomService.getRankedProducts(),
-          });
-          notifyScreens();
-          break;
-        }
 
-        case 'UNVOTE': {
-          const result = roomService.unvote(participantName, msg.productId);
-          if (!result.ok) {
-            send(ws, { type: 'ERROR', message: result.error });
-            return;
+          case 'REMOVE': {
+            const result = roomService.removeProduct(participantName, msg.productId);
+            if (!result.ok) {
+              send(ws, { type: 'ERROR', message: result.error });
+              return;
+            }
+            broadcastWs({
+              type: 'LIST_UPDATED',
+              products: roomService.getRankedProducts(),
+            });
+            notifyScreens();
+            break;
           }
-          broadcastWs({
-            type: 'LIST_UPDATED',
-            products: roomService.getRankedProducts(),
-          });
-          notifyScreens();
-          break;
         }
-
-        case 'REMOVE': {
-          const result = roomService.removeProduct(participantName, msg.productId);
-          if (!result.ok) {
-            send(ws, { type: 'ERROR', message: result.error });
-            return;
-          }
-          broadcastWs({
-            type: 'LIST_UPDATED',
-            products: roomService.getRankedProducts(),
-          });
-          notifyScreens();
-          break;
-        }
+      } catch {
+        send(ws, { type: 'ERROR', message: 'Ocurrió un error inesperado al procesar el mensaje.' });
       }
     });
 

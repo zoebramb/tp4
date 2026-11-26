@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Regalo grupal · Pantalla en vivo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="screen-body">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <h1>Ranking en vivo · Regalo grupal</h1>
+        <span id="sse-status" class="badge badge-neutral">Conectando...</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="stat-pill">
+          Participantes conectados:
+          <strong id="screen-participants-count">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="container screen-container">
+      <section class="card">
+        <div class="section-header">
+          <h2>Ranking actual</h2>
+          <span id="screen-products-count" class="badge badge-neutral">0 productos</span>
+        </div>
+
+        <p id="screen-empty" class="empty-state">
+          Esperando propuestas de los participantes...
+        </p>
+
+        <ol id="screen-products-list" class="products-list screen-list"></ol>
+      </section>
+    </main>
+
+    <script src="/screen.js"></script>
+  </body>
+</html>
