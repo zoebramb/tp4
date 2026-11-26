@@ -184,13 +184,5 @@ Si la pantalla consultara periódicamente un endpoint HTTP (por ejemplo cada 2 o
 1. Levantar el servidor (`npm run dev`) y abrir **3 pestañas** en `http://localhost:3000/` (participantes A, B y C) y **1 pestaña** en `http://localhost:3000/screen` (pantalla).
 2. **Entrada tardía**: con A y B adentro y productos votados, ingresar como C y verificar que ve toda la lista y los conectados al instante.
 3. **Fallo parcial**: proponer `1, 999999, 2`. Los productos `1` y `2` se agregan para todos y la pantalla; solo quien propuso ve el error de `999999` (`NOT_FOUND`).
-4. **Catálogo lento sin bloqueos**: configurar `CATALOG_DELAY_MS=2500` y `CATALOG_TIMEOUT_MS=4000` en `.env`, reiniciar, proponer desde A y votar desde B mientras A espera. Para probar `TIMEOUT`, poner `CATALOG_DELAY_MS=4000` y `CATALOG_TIMEOUT_MS=1500`.
-5. **Concurrencia**: enviar la misma propuesta de ID desde dos pestañas a la vez (no se duplica) y votar casi en simultáneo desde dos pestañas (se cuentan ambos votos).
-6. **Cierre de pestaña**: cerrar la pestaña de un participante y confirmar que desaparece de la lista de conectados y baja el contador en la pantalla.
-7. **Mensaje inválido desde la consola del navegador**: abrir DevTools en la pestaña de un participante y ejecutar:
-   ```js
-   window.ws.send("esto no es json");
-   window.ws.send(JSON.stringify({ type: "ACCION_INEXISTENTE" }));
-   window.ws.send(JSON.stringify({ type: "VOTE", productId: -5 }));
-   ```
-   El participante recibe un `ERROR` en pantalla y el servidor continúa funcionando con normalidad.
+4. **Concurrencia**: enviar la misma propuesta de ID desde dos pestañas a la vez (no se duplica) y votar casi en simultáneo desde dos pestañas (se cuentan ambos votos).
+5. **Cierre de pestaña**: cerrar la pestaña de un participante y confirmar que desaparece de la lista de conectados y baja el contador en la pantalla.
